@@ -1,0 +1,27 @@
+1. 定义变量
+	使用关键词 "var" 声明变量，使用关键词 "val" 声明常量。
+	var myVar : String = "Too"
+	val myVal : String = "Foo"
+	
+	val xmax, ymax = 100  // xmax, ymax都声明为100
+
+2. if语句
+
+	var x = 30;
+
+	if( x < 20 ){
+	 println("x 小于 20");
+	}else{
+	 println("x 大于 20");
+	}
+	
+3. tuple值赋值给 t1,t2,t3
+    val tuple = ("a",10,2.45)
+    val (t1,t2,t3) = tuple
+
+    println(t1,t2,t3)
+	
+4.数组合并
+    val a= Array(1)
+    val z= Array(2)
+    var c = Array.concat( a, z)

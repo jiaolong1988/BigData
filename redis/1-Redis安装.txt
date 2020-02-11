@@ -1,0 +1,35 @@
+https://www.cnblogs.com/zuidongfeng/p/8032505.html
+
+windows
+启动服务：redis-server --service-start
+停止服务：redis-server --service-stop
+
+注册服务
+redis-server.exe --service-install redis.windows.conf
+删除服务
+redis-server --service-uninstall
+
+绑定任意IP(redis.windows-service.conf,redis.windows.conf)
+bind 0.0.0.0
+ 
+ 
+Linux 
+修改redis.confi
+	bind 0.0.0.0
+
+#启动redis	
+./redis-server /home/redis-5.0.4/redis.conf
+
+查看进程
+ps -aux | grep redis
+
+linux 开机启动
+写脚本redis-start.sh
+	#!/bin/bash
+	cd /home/redis-5.0.4/src
+	nohup ./redis-server /home/redis-5.0.4/redis.conf > /dev/null 2>&1  &
+
+chmod u+x redis-start.sh
+
+vim /etc/rc.d/rc.local
+. /home/redis-5.0.4/redis-start.sh

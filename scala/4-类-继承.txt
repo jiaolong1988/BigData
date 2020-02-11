@@ -1,0 +1,126 @@
+ 样例类定义
+ case class Person(name: String, age: Int)
+ 
+案例5：类的构造器与辅助构造器
+1. 主构造器参数，通过var或val定义，可直接调用属性
+2. 在类中，主构造器限执行，然后在执行 辅助构造器
+3. 辅助构造器的第一行必须先调用一个存在的构造器，this()表示是一个主构造器
+4. 辅助构造器定义方式：def this(name:String){this()}
+案例5：类的构造器与辅助构造器
+object Test {
+
+  //定义主构造器，通过var或val,定义的参数，可直接调用name属性
+  class CounterA(var name:String) {}
+  //定义主构造器，无法调用name属性
+  class CounterB(name:String)
+
+  def main(args: Array[String]): Unit = {
+    println("=========调用构造器属性值===========")
+    //1、对象a可以调用name属性
+    var a = new CounterA("jiaolongA")
+    println(a.name)//读取属性值
+
+    a.name = "chenglongA"//修改属性值
+    println(a.name)
+
+    //2、b无法读取与修改 name属性
+    val b = new CounterB("jiaolongB")
+
+    println("=========第一构造器===========")
+    new Counter("jiaolongC")
+
+    println("=========第二构造器===========")
+    new Counter("jiaolongC",20)
+  }
+}
+
+class Counter {
+
+  private var name =""
+  private var step = 1
+
+  //第一辅助构造器 无返回值
+  def this(name:String){
+    //第一行必须先调用一个存在的构造器，this()表示是一个主构造器
+    this()
+
+    this.name = name
+    println("第一辅助构造器 name: "+name)
+  }
+
+  //第二辅助构造器 无返回值
+  def this (name:String,step:Int){
+    //第一行必须先调用一个存在的构造器
+    this(name)
+
+    this.step = step
+    println("第二构造器 step："+step)
+  }
+
+  println("主构造器。。。")
+}
+
+
+
+案例7、类的继承，使用extends 关键字
+
+//定义抽象类，并设置类的属性(val name:String)，该属性可以直接调用
+abstract class Car(val name:String){
+  val carBrand:String //抽象属性
+  def info() //抽象方法
+
+  var age:Int = 0
+  def greeting(): Unit ={
+    println("this is Car")
+  }
+
+  //辅助构造器
+  def this ( name:String, age:Int){
+    this(name) //第一行必须调用 主构造器 或 其他辅助构造器
+    this.age = age
+  }
+}
+
+
+//子类BMWCar的 主构造函数 调用了父类的主构造函数，通过 extends
+//由于 Car(name)是父构造器函数的参数，因此必须使用override
+class BMWCar(override val name:String) extends Car(name){
+  //重载父类的抽象字段
+   val carBrand: String = "BMW"
+
+  //重载父类的抽象方法
+   def info(): Unit ={
+    println(s"this is a $carBrand , used $age year")
+  }
+
+  //重载父类的非抽象方法，override 必选
+  override def greeting(): Unit = {
+    println("this is BMWCar")
+  }
+}
+
+
+//子类BYDCar主构造函数 调用了父类的辅助构造函数，通过 extends
+//由于Car(name,age)是父类的 辅助构造器，因此无需 使用 override
+class BYDCar(name:String,age:Int)extends Car(name,age){
+  //重载父类的抽象字段与方法
+  override val carBrand: String = "BYD"
+  override def info(): Unit = {
+    println(s"this is a $carBrand , used $age year")
+  }
+}
+object Test {
+  def main(args: Array[String]): Unit = {
+    val car1 = new BMWCar("jiao is Car")
+    val car2 = new BYDCar("long is Car",30)
+    show(car1)
+    show(car2)
+  }
+
+  //将参数设置为父类，根据传入的参数的具体子类，调用相应的方法
+  def show(thecar:Car)={
+    thecar.info()
+    thecar.greeting()
+    println()
+  }
+}

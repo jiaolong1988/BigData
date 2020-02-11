@@ -1,0 +1,84 @@
+1.  方法是类的一部分.
+2.  函数
+	1）函数是继承了 Trait 的类的对象,可赋值给一个变量.
+	2）函数也可作为一个参数传入到方法中
+
+
+将方法转为函数
+	val aa  = log(new Date, "info...") _
+
+	def log(date: Date, message: String)  = {
+	println(date + "----" + message)
+	}
+  
+柯里化
+  def strcat(s1: String)(s2: String) = {s1 + s2}
+  println(strcat("hello")(" world")) 
+
+
+一、方法定义
+def addInt( a:Int, b:Int ) : Int = {
+  var sum:Int = 0
+  sum = a + b
+
+  return sum
+}
+
+//没有返回值，返回类型为 Unit，类似于 Java 的 void。
+def printMe( ) : Unit = {
+      println("Hello, Scala!")
+}
+
+//参数设置默认值
+def addInt( a:Int=5, b:Int=7 ) : Int = {
+      var sum:Int = 0
+      sum = a + b
+
+      return sum
+}
+   
+
+
+二、函数定义
+
+
+  /**
+    * 函数->不指定返回类型
+    * 1.匿名函数定义：(x:Int,y:Int) => x + y
+    * 2.定义函数变量(将匿名函数复制给a): val a = (x:Int,y:Int) => x + y
+    *   println(a(1,2))
+    */
+  val a = (x:Int,y:Int) => x + y
+
+
+  /**
+    * 函数->指定返回类型
+    * 1. 定义函数变量（val 变量名:类型）： val b: (Int,Int)=>Int
+    * 2. 设置函数返回类型为Int： (Int,Int)=>Int
+    * 3. 将具体实现赋值给函数： = {(c,d) => c + d }
+    *   println(b(1,2))
+    */
+  val b: (Int,Int)=>Int = {(c,d) => c + d }
+  //无参数情况
+  val b1:()=> Long ={System.nanoTime}
+
+  /**
+    * 函数 -> 在方法中，函数当参数使用
+    * 1. 设置函数类型： f:(Int,Int)=> String
+    * 2. 设置方法的参数： 函数，函数的参数
+    * 3. 定义函数的实现方法
+    * 4. 作用：用于同一方法的多种实现。
+    *   println(c(c1,1,2))
+    *   println(c(c2,1,2))
+    */
+  def c(f:(Int,Int)=> String , x:Int,y:Int) ={
+    f(x,y)
+  }
+
+  //对应函数的方法实现1
+  def c1(x:Int,y:Int)={
+    (x+y).toString
+  }
+
+  //对应函数的方法实现2
+  val c2 = (m:Int,n:Int) =>(m*n).toString

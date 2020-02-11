@@ -1,0 +1,131 @@
+[TOC]
+
+### 准备
+
+
+	curl使用方法：https://www.jianshu.com/p/f910bdd17470
+	Livy版本：   Apache Livy 0.6.0-incubating
+	spark版本：  spark2.3.0
+	hadoop版本： 2.7.3
+
+### Livy安装
+	①在livy-env.sh中添加
+		export SPARK_HOME=/usr/spark-2.3.0
+	    export HADOOP_CONF_DIR=/etc/hadoop/conf
+		
+	②修改livy.conf 模式配置
+	   yarn模式
+		# 配置Livy会话所使用的Spark集群运行模式
+		livy.spark.master = yarn
+		# 配置Livy会话所使用的Spark集群部署模式
+		livy.spark.deploy-mode = cluster
+	 
+	   standlone模式
+		# 配置Livy会话所使用的Spark集群运行模式
+		livy.spark.master = spark://ubuntu:7077
+		# 配置Livy会话所使用的Spark集群部署模式
+		livy.spark.deploy-mode = cluster
+		
+		默认
+		# 配置Livy会话所使用的Spark集群运行模式
+		livy.spark.master = local
+		# 配置Livy会话所使用的Spark集群部署模式
+		livy.spark.deploy-mode =
+		
+	③livy.conf其他配置
+		//默认使用hiveContext
+		livy.repl.enable-hive-context = true
+		//开启用户代理
+		livy.impersonation.enabled = true
+		//设置session空闲过期时间
+		livy.server.session.timeout = 1h
+
+ #### 注意：
+
+- [spark 集群模式配置说明](http://spark.apache.org/docs/2.3.0/submitting-applications.html#master-urls)
+-  yarn模式：**spark需要配置hadoop路径，不需要开启spark集群。**
+-  standlone模式：**spark无需配置hadoop路径，livy无需配置hadoop路径，同事并启动Spark集群**
+
+
+
+### Livy-session提交
+​	通过rest来执行spark-shell,用于处理交互式请求。
+
+> **注意：livy-session不需要配置spark的模式，需要注释掉 livy.spark.master， livy.spark.deploy-mode**
+
+    #创建session
+    curl -X POST http://192.168.14.11:8998/sessions -d '{"kind": "spark"}' -H "Content-Type: application/json"
+    
+    livy-session 提交
+    案例1
+    curl http://192.168.14.11:8998/sessions/0/statements -X POST -H 'Content-Type: application/json' -d '{"code":"sc.parallelize(1 to 2).count()", "kind": "spark"}'
+    
+    案例2
+    curl http://192.168.14.11:8998/sessions/0/statements -XPOST  -H 'Content-Type:application/json' -d '{"code":"sc.textFile(\"hdfs://192.168.14.11:9000/test/WordCount.txt\").flatMap(_.split(\" \")).map((_,1)).reduceByKey(_+_).saveAsTextFile(\"hdfs://ubuntu:9000/result/77712\")"}'
+    
+    #查看结果
+    curl -XGET  http://192.168.14.11:8998/sessions/0/statements/0
+    
+    #删除session
+    curl -XDELETE http://192.168.14.11:8998/sessions/2
+
+### Livy-Batches提交
+​	通过rest来执行spark-submit,用于处理非交互式请求。
+
+#### yarn
+
+> 启动 hdfs + yarn + livy
+
+	## sparkPi
+	curl -XPOST -H "Content-Type: application/json" http://192.168.14.11:8998/batches --data '{ "conf": {"spark.master":"yarn-cluster"}, "file": "hdfs://192.168.14.11:9000/test/spark-examples_2.11-2.3.0.jar", "className": "org.apache.spark.examples.SparkPi", "name": "Livy Pi Example", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m", "queue":"default", "args":["100"]}'
+	
+	## wordcount
+	curl -X POST  -H "Content-Type: application/json" localhost:8998/batches --data '{"conf":{"spark.master":"yarn-cluster"} , "file": "hdfs://192.168.14.11:9000/test/WordCount-Spark.jar", "name": "Livy-WordCount-yarn", "queue":"default", "className": "WordCount", "args": ["hdfs://192.168.14.11:9000/test/WordCount.txt","hdfs://192.168.14.11:9000/result/3"]}'
+
+#### standalone
+
+> 启动 hdfs + spark + livy
+
+
+	## sparkPi
+	curl -XPOST -H "Content-Type: application/json" http://192.168.14.11:8998/batches --data '{ "conf": {"spark.master":"spark://ubuntu:7077"}, "file": "hdfs://ubuntu:9000/test/spark-examples_2.11-2.3.0.jar", "className": "org.apache.spark.examples.SparkPi", "name": "sparkPi-standalone1", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m", "queue":"default", "args":["100"]}'
+	
+	## wordcount
+	curl -X POST  -H "Content-Type: application/json" localhost:8998/batches --data '{"conf":{"spark.master":"spark://ubuntu:7077"} , "file": "hdfs://ubuntu:9000/test/WordCount-Spark.jar", "name": "WordCount-standalone2", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m","queue":"default", "className": "WordCount", "args": ["hdfs://ubuntu:9000/test/WordCount.txt", "hdfs://ubuntu:9000/result/2"]}'
+
+### spark案例测试
+
+```
+## Pi-spark standlone模式
+bin/spark-submit 
+--class org.apache.spark.examples.SparkPi \
+--master spark://ubuntu:7077 \
+/home/jiaolong/bigdata/spark/examples/jars/spark-examples_2.11-2.3.0.jar
+
+## Pi-spark yarn模式
+bin/spark-submit \
+--class org.apache.spark.examples.SparkPi \
+--master yarn \
+--deploy-mode cluster \
+--conf spark.dynamicAllocation.enabled=false \
+/home/jiaolong/bigdata/spark/examples/jars/spark-examples_2.11-2.3.0.jar
+```
+
+
+
+	## wordcount测试
+	bin/spark-submit --class WordCount \
+	--master spark://ubuntu:7077 \
+	/mnt/hgfs/linux-shared/WordCount-Spark.jar \
+	hdfs://192.168.14.11:9000/test/WordCount.txt \
+	hdfs://192.168.14.11:9000/result13
+
+
+
+#### hadoop 案例测试
+
+	## wordcount
+	hadoop jar /home/jiaolong/bigdata/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar  wordcount /hadoop/input/* /hadoop/output
+		
+	## Pi
+	hadoop jar /home/jiaolong/bigdata/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar  pi 3 5 

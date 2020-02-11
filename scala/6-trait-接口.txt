@@ -1,0 +1,48 @@
+案例9、trait（特质，相当于接口）
+
+//定义 特质
+trait Flyable{
+  var maxFlyHeight:Int  //抽象字段
+  def fly() //抽象方法
+
+  def breathe()={ //具体方法
+    println("I can breathe")
+  }
+}
+
+trait HasLegs{
+  val legs:Int //抽象字段
+
+  def move = println(s"leg: $legs ")
+}
+
+class Animal(val category: String){
+  def info(): Unit = println("Animal :"+category)
+}
+
+//可实现多个 特质
+class Bird(flyHeight: Int) extends Animal("animal") with Flyable with HasLegs {
+  var maxFlyHeight:Int =  flyHeight //重载特质的抽象字段
+  val legs =2;
+
+  def fly(): Unit = {
+    println("I can fly height:"+maxFlyHeight)
+  }
+}
+object Test {
+  def main(args: Array[String]): Unit = {
+
+    //1、Flyable可以当做 类型 去使用
+    val a:Flyable = new Bird(10)
+    val b = new Bird(200)
+    a.fly()
+    b.fly()
+
+    println()
+
+    //2、trait 的另一种写法
+    val c = new Animal("成龙") with HasLegs{val legs =8}
+    c.info()
+    println(c.legs)
+  }
+}

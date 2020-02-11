@@ -1,0 +1,37 @@
+https://zhuanlan.zhihu.com/p/33165576
+偏应用函数
+  def main(args: Array[String]) {
+    val date = new Date
+    /**
+      * 偏应用函数
+      * 对原方法的参数设定默认值，使其成为函数
+      */
+    val logWithDateBound = log(date, _ : String)
+
+    //使用新封装的函数
+    logWithDateBound("message1" )
+  }
+
+  def log(date: Date, message: String)  = {
+    println(date + "----" + message)
+  }
+  
+偏函数
+  val positive: PartialFunction[Int, Int] = {
+    case x if x >= 0 => x
+  }
+
+  val odd: PartialFunction[Int, Boolean] = {
+    case x if x % 2 == 1 => true
+  }
+
+  val even: PartialFunction[Int, Boolean] = {
+    case x if x % 2 == 0 => true
+  }
+  
+  
+val evenCheck: PartialFunction[Int, Boolean] = positive  andThen even
+val oddCheck: PartialFunction[Int, Boolean] = positive andThen  odd
+
+println(evenCheck.isDefinedAt(-2))
+println(oddCheck.isDefinedAt(-2))

@@ -1,0 +1,132 @@
+https://www.jianshu.com/p/2980b3b4ab16
+https://blog.csdn.net/weixin_40652340/article/details/78744518
+https://www.jianshu.com/p/6e351ec6f321
+
+# 查看帮助[help 'command']
+	查看get命令的语法
+	help "get"
+	help "scan"
+
+# 表空间
+	list_namespace :查询命名空间(可理解为关系型数据库的表空间，也可以看做是一个数据库)
+	create_namespace 'ns1'   :创建namespace
+	drop_namespace 'ns1'     :删除namespace
+	describe_namespace 'ns1' :描述查看namespace的结构
+	
+	示例： create 'ns1:t1', {NAME => 'f1', VERSIONS => 5}
+	-》ns1指的就是namespace
+	-》t1代表table_name
+	-》ns1:t1这样的格式就是唯一确定了一张表
+	-》在hbase中=>符号表示等于
+	-》f指的是列簇
+	-》VERSIONS => 5代表同时能够存储的版本数
+	-》建表时要指定一个列簇
+	-》可以指定多个列簇，一个大括号中只能指定一个NAME（变量）
+	-》一个列簇就是一个大括号
+
+
+
+# 1.进入hbase 
+	进入bin目录，执行hbase shell
+	exits 退出命令行
+
+# 2.表操作
+	创建表语法：create '表名称','列簇1','列簇2','列簇N'
+	create 'table1', 'col_add', 'col_info'
+	
+	创建分区表[SPLITS指定各个分区开始的rowkey]
+	create 'people','info',SPLITS=>['10','20','30','40']	
+	
+	列出所有表
+	list
+	
+	表的描述信息
+	describe 'table1'
+	
+	查看表是否存在
+	exists 'table2'
+	
+	查看表是否可用
+	is_enabled 'table1'
+	
+	删除一个列簇
+	1. disable 'table1'
+	2. alter 'table1', {NAME=>'tab1_add', METHOD=>'delete'}
+	3. enable 'table1'
+	
+	修改列族的VERSIONS
+	alter 'student',NAME=>'info',VERSIONS => 5 
+	describe 'student'
+	
+	删除表
+	disable 'table1'
+	drop 'table1'
+补充：
+	create 'student', {NAME => 'info', VERSIONS => 3}
+	NAME => 'info'是列族的名字，VERSIONS =>3是指这个列族可以存储三个版本的数据，多于3个的话，最老的版本将被删除。
+
+# 2.数据操作
+
+	create 'table1', 'tab1_add', 'tab1_info'
+	
+	添加数据
+	put 'table1' ,'rowkey1','tab1_info:name','jiaolong'
+	put 'table1' ,'rowkey1','tab1_info:age','31'
+	put 'table1' ,'rowkey1','tab1_add:sex','man'
+		
+	put 'table1' ,'rowkey2','tab1_info:name','jiaolong'
+	put 'table1' ,'rowkey2','tab1_info:age','60'
+	put 'table1' ,'rowkey2','tab1_add:sex','nv'
+
+
+​	
+
+	全表扫描
+	scan 'table1' 
+	扫描指定列
+	scan 'table1', {COLUMNS => 'tab1_info:age'}
+	
+	"对象"扫描
+	t = get_table 'table1'
+	t.scan
+	t.get 'rowkey1', {COLUMNS => 'tab1_info'}
+	t.get 'rowkey1', {COLUMNS => 'tab1_info:age'}
+
+
+	查询表中有多少行
+	count 'table1'
+	
+	rowkey查询
+	get 'table1' , 'rowkey1'
+	查询列簇
+	get 'table1' , 'rowkey1','tab1_info'
+	查询单列
+	get 'table1' , 'rowkey1','tab1_info:name'
+	查询指定的列
+	get 'table1','rowkey1', {COLUMNS => ['tab1_info:age','tab1_add:sex']}
+
+
+	更新
+	put 'table1', 'rowkey1', 'tab1_info:name', 'chenglong'
+
+
+	删除 列 数据
+	delete 'table1', 'rowkey1', 'tab1_info:sex'
+	删除 行 数据
+	deleteall 'table1', 'rowkey1'
+
+```
+#计数器
+
+设置自动增长列
+incr 'table1','rowkey3','tab1_info:age'
+添加自动增长的值
+incr 'table1','rowkey3','tab1_info:age',1
+```
+
+	返回计数器的值(1.2版本以后有)
+	get_counter 'table1','rowkey3','tab1_info:age'
+
+	清空表中所有记录
+	truncate 'table1'
+

@@ -1,0 +1,59 @@
+一、遍历
+val list = List(1, 2, 3, 4, 5)
+list.foreach(elem => println(elem))
+list.foreach(println)
+
+
+val university = Map("XMU" -> "Xiamen University", "THU" -> "Tsinghua University","PKU"->"Peking University")
+
+for ((k,v) <- university) printf("Code is : %s and name is: %s\n",k,v)
+for (k<-university.keys) println(k)
+for (v<-university.values) println(v)
+
+university.foreach({case (k,v) => println(k+":"+v)})
+university.foreach { kv => println(kv._1 + ":" + kv._2) }
+
+
+二、map与flatMap
+	val books = List("Hadoop", "Hive", "HDFS")
+
+	/**
+	  * [s => s.toUpperCase] 这种表达式被称为“Lamda表达式”
+	  * 格式：[(参数) => 表达式 ]//如果参数只有一个，参数的圆括号可以省略
+	  */
+	val a = books.map(s => s.toList)
+	println(a)
+
+	//该函数对每个输入都会返回一个集合（而不是一个元素），然后，flatMap把生成的多个集合“拍扁”成为一个集合。
+	val b = books.flatMap(s => s.toList)
+	println(b)
+	
+三、reduce 与fold
+
+    val university = Map("XMU" -> "Xiamen University", "THU" -> "Tsinghua University","PKU"->"Peking University","XMUT"->"Xiamen University of Technology")
+    val universityOfXiamen = university.filter{kv => kv._2 contains "Xiamen"}
+    universityOfXiamen foreach {kv => println(kv._1+":"+kv._2)}
+
+    val list = List(1,2,3,4,5)
+//    reduceLeft(_ + _)表示从列表头部开始，对两两元素进行求和操作
+//    1+2 = 3
+//    3+3 = 6
+//    6+4 = 10
+//    10+5 = 15
+    val c = list.reduceLeft(_ + _)
+
+//    reduceRight(_ + _)表示从列表尾部开始，对两两元素进行求和操作，顺序如下：
+//    4+5 = 9
+//    3+9 = 12
+//    2+12 = 14
+//    1+14 = 15
+    val d = list.reduceRight(_ + _)
+    println(c,d)
+
+
+    println(list.reduceLeft(_ - _))
+    println(list.reduceRight(_ - _))
+
+    //折叠(fold)操作和reduce（归约）操作比较类似。fold操作需要从一个初始的“种子”值开始，并以该值作为上下文，处理集合中的每个元素。
+    println(list.fold(10)(_*_))
+    println(list.fold(10)(_+_))

@@ -1,0 +1,63 @@
+
+bin/kafka-server-stop.sh
+source start-kafka.sh
+vim config/server.properties
+
+
+
+kafka 设置zookeeper
+server.perties
+	zookeeper.connect=master1:2181,master2:2181,slave1:2181,slave2:2181,slave3:2181/kafka
+#后台启动
+nohup bin/kafka-server-start.sh config/server.properties > /dev/null 2>&1 &
+
+查看topic信息
+bin/kafka-configs.sh --zookeeper slave2:2181 --entity-type topics --entity-name my-topic --describe
+
+#创建
+bin/kafka-topics.sh --create --zookeeper slave2:2181,slave3:2181 --replication-factor 2 --partitions 2 --topic my-topic
+
+# 查看topic下partition 信息
+bin/kafka-topics.sh --list --zookeeper slave3:2181
+bin/kafka-topics.sh --describe --zookeeper slave3:2181 --topic my-topic
+
+# 查看topic消费情况--已经废弃
+bin/kafka-run-class.sh kafka.tools.ConsumerOffsetChecker --zookeeper slave2:2181 --topic my-topic --group kafka01
+
+查询offset的最大值：
+bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list slave2:9092 -topic my-topic --time -1
+查询offset的最小值：
+bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list slave2:9092 -topic my-topic --time -2
+
+查看消息的offset
+kafka-simple-consumer-shell.sh --broker-list slave3:9092 \
+                                       --topic my-topic \
+                                       --partition 1 \
+                                       --print-offsets \
+                                       --offset 18 \
+                                       --clientId my-topic \
+                                       --property print.key=true
+
+# 查看非API 的组的消费情况-推荐
+bin/kafka-consumer-groups.sh --zookeeper slave2:2181 --list
+
+#查看API-group组 消费情况
+bin/kafka-consumer-groups.sh --bootstrap-server slave2:9092 --list
+bin/kafka-consumer-groups.sh --bootstrap-server slave3:9092,slave2:9092 --describe --group kafka01
+
+
+#生产者、消费者测试
+bin/kafka-console-producer.sh --broker-list slave1:9092 --topic my-topic 
+bin/kafka-console-producer.sh --broker-list slave2:9092 --topic my-topic 
+
+bin/kafka-console-consumer.sh --bootstrap-server slave3:9092 --from-beginning --topic my-topic 
+
+# 从当前消费
+bin/kafka-console-consumer.sh --zookeeper slave3:2181/kafka --topic test
+#从头消费
+bin/kafka-console-consumer.sh --zookeeper slave3:2181/kafka --topic my-topic1 --from-beginning 
+
+#服务器消费指定分区数据
+bin/kafka-console-consumer.sh --bootstrap-server slave2:9092 --from-beginning --topic test --partition 0
+#该服务器消费所有数据
+bin/kafka-console-consumer.sh --bootstrap-server slave2:9092 --from-beginning --topic test 

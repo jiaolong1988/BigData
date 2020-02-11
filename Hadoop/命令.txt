@@ -1,0 +1,22 @@
+查看状态
+yarn application -status application_1416899352676_0008
+
+杀死作业
+yarn application -kill application_1416899352676_0008
+
+查看作业类型
+yarn application -list
+
+
+hdfs
+hdfs dfs -mkdir -p /user/hadoop
+hdfs dfs -ls /user/hadoop
+hdfs dfs -put /word.txt /quanty-brain/hist_data/
+hdfs dfs -rm -r /var/log/spark/*
+
+
+hdfs dfs -put /home/data/spark-data/spark-test-data.txt /test/hdfs/spark/data
+hdfs dfs -mkdir -p /test/hdfs/spark/data
+hdfs dfs -mkdir -p /test/hdfs/spark/result
+
+

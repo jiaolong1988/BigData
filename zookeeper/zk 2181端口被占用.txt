@@ -1,0 +1,13 @@
+https://blog.csdn.net/weiyongle1996/article/details/73733228
+
+查看zk的错误信息
+zkServer.sh start-foreground
+
+#查看端口是否占用
+netstat -an | grep 2181 
+
+查看端口被占用的进程
+lsof -i:2181
+
+#删除进程
+kill -9 PID

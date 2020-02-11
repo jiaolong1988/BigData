@@ -1,0 +1,7 @@
+
+启动zookeeper报错already running as process
+
+解决办法：
+删除zk 数据目录下的文件信息（除了myid）
+
+对zookeeper 要正常的启动失败，不要直接断电

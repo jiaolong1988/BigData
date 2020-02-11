@@ -1,0 +1,3 @@
+#启动命令
+bin/flume-ng agent -c conf -f myconf/flume-conf.properties -n a1 -Dflume.root.logger=INFO,console
+bin/flume-ng agent -c conf -f myconf/cmcc-flume-conf.properties -n a1 -Dflume.root.logger=INFO,console

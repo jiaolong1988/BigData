@@ -1,0 +1,76 @@
+案例8：泛型
+//泛型一、将泛型定义在类上
+class Box[T]{
+  import scala.collection.mutable
+  val elems:mutable.Stack[T] = mutable.Stack()
+
+  def remove:Option[T]={
+    if (elems.isEmpty)None else Some(elems.pop())
+  }
+
+  def append(a1:T): Unit ={
+    elems.push(a1)
+  }
+}
+case class Book(name:String)
+
+object Test1 {
+  def main(args: Array[String]): Unit = {
+    val a = new Box[Book]
+    a.append(Book("hadoop"))
+    a.append(Book("spark"))
+
+    //获取元素
+    println(a.elems)
+    println(a.remove)
+  }
+}
+//泛型二、在类的内部 定义抽象类型
+abstract class Element{
+  type T //定义抽象 类型成员
+  var value:T //抽象字段，类型为T
+  def show:Unit //抽象方法
+}
+
+class IntEle(var value:Int) extends Element{
+  override type T = Int
+  override def show: Unit = 
+    println(s"this is IntEle show:$value")
+}
+
+class StringEle(var value:String) extends Element{
+  override type T = String
+  override def show: Unit =
+    println(s"this is StringEle show:$value")
+}
+object Test1 {
+  def main(args: Array[String]): Unit = {
+    val a = new IntEle(10)
+    val b = new StringEle("jiaolong")
+    a.show
+    b.show
+  }
+}
+泛型二的另一种写法
+abstract class Element[T]{
+  var value:T //抽象字段，类型为T
+  def show:Unit //抽象方法
+}
+
+class IntEle(var value:Int) extends Element[Int]{
+  override def show: Unit =
+    println(s"this is IntEle show:$value")
+}
+
+class StringEle(var value:String) extends Element[String]{
+  override def show: Unit =
+    println(s"this is StringEle show:$value")
+}
+object Test1 {
+  def main(args: Array[String]): Unit = {
+    val a = new IntEle(10)
+    val b = new StringEle("jiaolong")
+    a.show
+    b.show
+  }
+}

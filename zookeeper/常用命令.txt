@@ -1,0 +1,4 @@
+zookeeper
+zkCli.sh
+ls /
+rmr kafka

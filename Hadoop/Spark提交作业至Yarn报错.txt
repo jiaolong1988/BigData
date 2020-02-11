@@ -1,0 +1,9 @@
+Application application_1537283877986_0003 failed 2 times due to AM Container for appattempt_1537283877986_0003_000002 exited with exitCode: 1
+
+1. 检查代码中的setMaster 是否删除
+
+2. 查看日志
+
+今天写spark，在本地运行正常，在yarn上执行报了这么个异常，原因既然是我在把代码setMaster注释掉
+java.util.concurrent.TimeoutException: Futures timed out after [100000 milliseconds] at scala.concurrent.impl.Promise$DefaultPromise.ready(Promise.scala:219) at scala.concurrent.impl.Promise$DefaultPromise.result(Promise.scala:223) at 
+

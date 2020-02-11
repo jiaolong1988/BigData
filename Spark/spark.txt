@@ -1,0 +1,86 @@
+# 指定spark集群提交
+bin/spark-submit --class com.jiaolong.spark.MyWordCount \
+--master spark://master2:7077 \
+/home/data/spark-data/original-project_test-1.0-SNAPSHOT.jar \
+/home/data/spark-data/spark-test-data.txt \
+/home/data/spark-data/result
+
+
+# 普通提交
+./bin/spark-submit --class com.jiaolong.spark.MyWordCount \
+--master spark://master2:7077 \
+/home/data/spark-data/project_test-1.0-SNAPSHOT.jar  \
+hdfs://master2:9000/test/hdfs/spark/data/spark-test-data.txt \
+hdfs://master2:9000/test/hdfs/spark/result
+
+./bin/spark-submit --class com.jiaolong.app.BootStarpAppV2 \
+--master spark://master2:7077 \
+/home/data/spark-data/project_test-1.0-SNAPSHOT.jar
+
+./bin/spark-submit \
+--class com.jiaolong.app.Test \
+--master yarn \
+--deploy-mode cluster \
+--num-executors 2 \
+--executor-cores 1 \
+--executor-memory 512M \
+--driver-memory 512M \
+--conf spark.dynamicAllocation.enabled=false \
+/home/data/spark-data/project_test-1.0-SNAPSHOT.jar 
+
+官网案例
+./bin/spark-submit --class org.apache.spark.examples.SparkPi --master yarn /home/BigData/spark/examples/jars/spark-examples_2.11-2.2.1.jar 10
+
+
+
+参考 spark on yarn
+https://www.cnblogs.com/haoyy/p/6893943.html
+./bin/spark-submit \
+--master yarn-cluster \
+--num-executors 100 \
+--executor-memory 6G \
+--executor-cores 4 \
+--driver-memory 1G \
+--conf spark.default.parallelism=1000 \
+--conf spark.storage.memoryFraction=0.5 \
+--conf spark.shuffle.memoryFraction=0.3 \
+
+--conf spark.default.parallelism=1000  设置rdd的并行读，一般和kafka的partition数量相同
+--conf spark.streaming.kafka.maxRetries=1  driver 连续重试的最大次数，以此找到每个分区 leader 的最近的（latest）的偏移量
+--conf spark.yarn.maxAppAttempts=1    设置yarn的重启次数，默认是2
+
+--num-executors          NUM                 设置总的executor启动数量，默认是2个
+--queue                 QUEUE_NAME           提交应用程序给哪个YARN的队列，默认是default队列
+
+--executor-cores        NUM               每个 executor 使用的并发线程数目，也即每个 executor 最大可并发执行的 Task数目。
+--executor-memory		MEM			      每个 executor 使用的最大内存，不可超过单机的最大可使用内存。
+
+--driver-cores			NUM				     Driver的核数，默认是1。在yarn集群模式下使用
+--driver-memory         NUM				     Driver内存大小。在yarn集群模式下使用
+
+
+hello world
+val line = sc.textFile("/home/data/spark-data/spark-test-data.txt")
+val dataInfo = line.flatMap(_.split(" ")).map((_,1)).cache()
+val info = dataInfo.reduceByKey(_+_).collect()
+val resultRdd = sc.parallelize(info)
+resultRdd.saveAsTextFile("/home/data/spark-data/result/spark-shell")
+
+-spark-yarn 异常
+client token: N/A
+	 diagnostics: Application application_1556066498807_0003 failed 2 times due to AM Container for appattempt_1556066498807_0003_000002 exited with  exitCode: 15
+For more detailed output, check application tracking page:http://master2:8088/proxy/application_1556066498807_0003/Then, click on links to logs of each attempt.
+Diagnostics: Exception from container-launch.
+Container id: container_1556066498807_0003_02_000001
+Exit code: 15
+Stack trace: ExitCodeException exitCode=15: 
+	at org.apache.hadoop.util.Shell.runCommand(Shell.java:538)
+	at org.apache.hadoop.util.Shell.run(Shell.java:455)
+	at org.apache.hadoop.util.Shell$ShellCommandExecutor.execute(Shell.java:715)
+	at org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor.launchContainer(DefaultContainerExecutor.java:211)
+	at org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch.call(ContainerLaunch.java:302)
+	at org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch.call(ContainerLaunch.java:82)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)

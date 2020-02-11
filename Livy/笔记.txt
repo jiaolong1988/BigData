@@ -1,0 +1,118 @@
+课题：Spark Livy
+
+·  什么是Livy 
+·  Livy的特点
+·  Livy的运作流程阐述
+·  Livy的安装、启动、访问
+·  Livy的使用
+
+
+===>主题：什么是Livy
+
+livy是cloudera开发的通过REST（注1）来连接、管理spark的解决方案。
+
+涉及到一些角色：
+	①客户端：browser,app终端设备
+	②Livy Server
+	③Livy Server获得用户的请求后，让后将job提交给spark 集群去执行。
+
+注1：
+
+REST即表述性状态传递（英文：Representational State Transfer，简称REST）是Roy Fielding博士在2000年他的博士论文中提出来的一种软件架构风格。它是一种针对网络应用的设计和开发方式，可以降低开发的复杂性，提高系统的可伸缩性。
+目前在三种主流的Web服务实现方案中，因为REST模式的Web服务与复杂的SOAP和XML-RPC对比来讲明显的更加简洁，越来越多的web服务开始采用REST风格设计和实现。例如，Amazon.com提供接近REST风格的Web服务进行图书查找；雅虎提供的Web服务也是REST风格的。
+
+
+====>主题：Livy的特点 
+①支持多种客户端
+   web,app 
+   
+② 支持诸如java,scala以及python等语言编写的job提交给远程的spark集群去执行
+
+③代码可以不需要作任何的变更
+    仅仅是将job提交给远程的spark集群去执行的方式发生了变更。
+	
+====>主题：Livy的安装
+步骤：
+	1，下载安装包
+	   见：01-Livy\6_软件\livy-0.5.0-incubating-bin.zip
+
+	2， 上传到虚拟机上
+
+	3，解压，重命名，配置环境变量，source生效
+
+	4，修改配置文件：
+		  ①在livy-env中添加
+			export SPARK_HOME=Spark安装目录
+			export HADOOP_CONF_DIR=Hadoop配置目录  
+			
+		  ②livy.conf中可以进行一些配置
+			# 配置Livy会话所使用的Spark集群运行模式
+			livy.spark.master = yarn
+			# 配置Livy会话所使用的Spark集群部署模式
+			livy.spark.deploy-mode = cluster
+			//默认使用hiveContext
+			livy.repl.enable-hive-context = true
+			//开启用户代理
+			livy.impersonation.enabled = true
+			//设置session空闲过期时间
+			livy.server.session.timeout = 1h
+			
+====>主题：Livy的启动、访问
+~>启动：（前提：启动zookeeper集群，hadoop集群）
+  livy-server start
+  
+  注意：启动成功之后，可以查看到一个名为LivyServer的进程。
+  
+~>访问：
+  http://janson01:8998/ui
+  
+  注意：若是能查看到界面上显示“No Sessions or Batches have been created yet.”，证明livy server已经正常启动了。
+  
+
+====>主题：Livy的使用
+	1、通过使用livy-session，可以通过rest来执行spark-shell，用于处理交互式的请求。
+		①session的创建
+			 语法：curl -XPOST 'http://LivyServer对应的ip地址的别名:8998/sessions' -H "Content-Type:application/json" --data '{"kind":类型名}'
+			 
+			 需求：使用livy-session方式，创建一个名为spark的session。
+			 curl -XPOST 'http://JANSON01:8998/sessions' -H "Content-Type:application/json" --data '{"kind":"spark"}'
+			 
+			 命令行客户端成功之后，效果如下：
+			[root@JANSON01 conf]# curl -XPOST 'http://JANSON01:8998/sessions' -H "Content-Type:application/json" --data '{"kind":"spark"}'
+			{"id":0,"appId":null,"owner":null,"proxyUser":null,"state":"starting","kind":"spark","appInfo":{"driverLogUrl":null,"sparkUiUrl":null},"log":["stdout: ","\nstderr: ","\nYARN Diagnostics: "]}[root@JANSON01 conf]# 	 
+		 
+		②session查看
+		  http://janson01:8998/ui
+		  
+		③使用livy session，计算hdfs上根目录下的文件hello.txt中每个单词出现的总次数，并将结果落地到hdfs指定的目录下
+		 语法： 
+		 curl -XPOST http://JANSON01:8998/sessions/session的唯一标识符/statements  -H 'Content-Type: application/json'  -d '{"code":"待计算的代码片段"}'
+		
+		在Linux终端下键入执行的指令：
+		curl -XPOST 'http://JANSON01:8998/sessions/0/statements' -H 'Content-Type:application/json' -d '{"code":"sc.textFile(\"hdfs://ns1/hello.txt\").flatMap(_.split(\" \")).map((_,1)).reduceByKey(_+_).saveAsTextFile(\"hdfs://ns1/livy-session-example2\")"}'
+
+		注意：待到livy server的状态转换成idle的时候，向其发送请求，才会去执行。执行时，其状态转变成busy；执行完毕之后，状态又会变成idle。
+		
+		 ④删除session
+		 [root@JANSON01 conf]# curl -XDELETE http://JANSON01:8998/sessions/0
+		{"msg":"deleted"}[root@JANSON01 conf]# 
+
+	2、通过使用livy-batches，可以通过rest来执行spark-submit，用于处理非交互式的请求。
+	①使用livy batches，运行官方案例之求圆周率PI的值。
+		在Linux命令行下提交如下语句：
+		前提：需要将计算（jar包）上传到hdfs指定的目录下。
+		curl -XPOST -H "Content-Type: application/json" http://JANSON01:8998/batches --data '{ "conf": {"spark.master":"yarn-cluster"}, "file": "hdfs://ns1/myjars/spark-examples_2.11-2.3.0.jar", "className": "org.apache.spark.examples.SparkPi", "name": "Livy Pi Example", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m", "queue":"default", "args":["100"]}'
+	
+	②使用livy batches，计算hdfs上根目录下的文件hello.txt中每个单词出现的次数，并将结果落地到hdfs指定的目录下
+		在Linux终端下键入执行的指令：
+		前提：书写工程，打包成jar，并将计算（jar包）上传到hdfs指定的目录下。
+		
+		curl -XPOST -H "Content-Type: application/json" http://JANSON01:8998/batches --data '{ "conf": {"spark.master":"yarn-cluster"}, "file": "hdfs://ns1/myjars/my-word-count.jar", "className": "com.l000phone.bigdata.MyWordCount", "name": "Janson Word Count", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m", "queue":"default", "args":["hdfs://ns1/hello.txt","hdfs://ns1/livy-batches-result"]}'
+		
+		
+		补充：(注意：下述两种运行模式，需要将livy配置文件中的livy.spark.master、livy.spark.deploy-mode配置节点注释掉)
+			standalone-client集群运行模式：
+			curl -XPOST -H "Content-Type: application/json" http://JANSON01:8998/batches --data '{ "conf": {"spark.master":"spark://JANSON01:7077"}, "file": "hdfs://ns1/myjars/my-word-count.jar", "className": "com.l000phone.bigdata.MyWordCount", "name": "Janson Word Count", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m", "queue":"default", "args":["hdfs://ns1/hello.txt","hdfs://ns1/livy-batches-result2"]}'
+			
+			standalone-cluster集群运行模式：
+			curl -XPOST -H "Content-Type: application/json" http://JANSON01:8998/batches --data '{ "conf": {"spark.master":"spark://JANSON01:7077","spark.deploy-mode":"cluster"}, "file": "hdfs://ns1/myjars/my-word-count.jar", "className": "com.l000phone.bigdata.MyWordCount", "name": "Janson Word Count", "executorCores":1, "executorMemory":"512m", "driverCores":1, "driverMemory":"512m", "queue":"default", "args":["hdfs://ns1/hello.txt","hdfs://ns1/livy-batches-result3"]}'

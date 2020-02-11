@@ -1,0 +1,46 @@
+[toc]
+
+# spark向hbase写数据
+
+bin/spark-submit \
+--class com.quantyBrain.Import.SparkWriteHBaseToRedis \
+--master spark://192.168.1.11:7077 \
+--conf spark.driver.maxResultSize=10g \
+--conf spark.driver.memory=2g \
+--conf spark.executor.memory=8g \
+--conf spark.executor.cores=4 \
+/root/jars/sparkImport-1.0-SNAPSHOT-jar-with-dependencies.jar \
+hdfs://namenode/sensor-data/*
+
+# spark读hbase数据-压缩写入redis
+bin/spark-submit \
+--class com.quantyBrain.Import.SparkReadHBaseToRedisV2 \
+--master spark://192.168.1.11:7077 \
+--conf spark.driver.maxResultSize=10g \
+--conf spark.driver.memory=2g \
+--conf spark.executor.memory=8g \
+--conf spark.executor.cores=4 \
+/root/jars/bigData-import-1.0-SNAPSHOT-jar-with-dependencies.jar \
+6 "2016-01-01 00:00:01" "2016-02-01 00:00:01" 1m 6 12  "6145157760100014542560010001m"
+
+
+
+# 配置信息
+
+#序列化配置
+--conf spark.kryoserializer.buffer.max=8000m  \
+--conf spark.kryoserializer.buffer=5000m \
+
+#设置心跳时间
+--conf spark.network.timeout=100000000 \
+--conf spark.executor.heartbeatInterval=10000000   \
+
+#设置总核心数
+--total-executor-cores 12 \
+
+
+#WordCount
+val lines=sc.textFile("hdfs://namenode/sensor-data/*")
+val resultRdd=lines.flatMap(_.split(" ")).map((_,1)).reduceByKey(_+_)
+resultRdd.collect().foreach(print(_))
+resultRdd.saveAsTextFile(output)

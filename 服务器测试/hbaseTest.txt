@@ -1,0 +1,49 @@
+#创建分区
+echo "1/|
+2/|
+3/|
+4/|
+5/|
+6/|
+7/|
+8/|
+9/|
+10/|" > /root/region_split_info.txt
+
+#创建生产表
+disable 'industry_data'
+drop 'industry_data'
+create 'industry_data', 's', {SPLITS_FILE => '/root/region_split_info.txt'}
+
+#查询
+scan 'industry_test'
+scan 'industry_data', {STARTROW => '6/2016-01-01 00:00:00', ENDROW => '7/2016-01-01 00:00:10'}
+https://cloud.tencent.com/developer/article/1336648
+
+#创建测试表
+disable 'industry_test'
+drop 'industry_test'
+create 'industry_test', 's'
+
+put 'industry_test' ,'1/2016-01-01 00:00:00','s:val','14.907278299490084'
+put 'industry_test' ,'1/2016-01-01 00:00:01','s:val','14.907278299490084'
+put 'industry_test' ,'1/2016-01-01 00:00:02','s:val','14.907278299490084'
+put 'industry_test' ,'1/2016-01-01 00:00:03','s:val','14.907278299490084'
+put 'industry_test' ,'1/2016-01-01 00:00:04','s:val','14.907278299490084'
+put 'industry_test' ,'1/2016-01-01 00:00:05','s:val','14.907278299490084'
+
+
+put 'industry_test' ,'2/2016-01-01 00:00:00','s:val','15.907278299490084'
+put 'industry_test' ,'2/2016-01-01 00:00:01','s:val','15.907278299490084'
+put 'industry_test' ,'2/2016-01-01 00:00:02','s:val','15.907278299490084'
+put 'industry_test' ,'2/2016-01-01 00:00:03','s:val','15.907278299490084'
+put 'industry_test' ,'2/2016-01-01 00:00:04','s:val','15.907278299490084'
+put 'industry_test' ,'2/2016-01-01 00:00:05','s:val','15.907278299490084'
+
+
+put 'industry_test' ,'3/2016-01-01 00:00:00','s:val','16.907278299490084'
+put 'industry_test' ,'3/2016-01-01 00:00:01','s:val','16.907278299490084'
+put 'industry_test' ,'3/2016-01-01 00:00:02','s:val','16.907278299490084'
+put 'industry_test' ,'3/2016-01-01 00:00:03','s:val','16.907278299490084'
+put 'industry_test' ,'3/2016-01-01 00:00:04','s:val','16.907278299490084'
+put 'industry_test' ,'3/2016-01-01 00:00:05','s:val','16.907278299490084'

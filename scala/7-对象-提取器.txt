@@ -1,0 +1,59 @@
+object Test {
+   def main(args: Array[String]) {
+      
+      val x = Test(5)
+      println(x)
+
+      x match
+      {
+         case Test(num) => println(x + " 是 " + num + " 的两倍！")
+         //unapply 被调用
+         case _ => println("无法计算")
+      }
+
+   }
+   def apply(x: Int) = x*2
+   def unapply(z: Int): Option[Int] = if (z%2==0) Some(z/2) else None
+}
+
+
+
+案例6、对象的构造器与返回值
+//class Car 与 object Car 是伴生类、伴生对象
+class Car(val name:String) {
+
+  def info(): Unit ={
+    println("this is info() :"+name)
+  }
+}
+
+object Car{
+  //定义object Car的构造方法: val c = Car("jiaolong")
+  def apply(name: String): Car = {
+    println("this is apply()")
+    new Car(name)
+  }
+
+
+  //设置Car对象的返回值
+  def unapply(c: Car): Option[(String,Int)] = {
+    println("this is unapply()")
+    Some(("jiaolong",30))
+  }
+}
+
+object TestCar{
+  def main(args: Array[String]): Unit = {
+    println("apply()方法相对于Class来说，就是Object的构造方法.")
+    println()
+
+    println("=========apply()=================")
+    val c = Car("jiaolong")
+    c.info()
+
+    println("=========unapply()=================")
+    //获取Car对象的unapply()值，并将返回值 赋给 a
+    val Car(a) = Car("jiaolong")
+    println("unapply()返回的取值："+a)
+  }
+}

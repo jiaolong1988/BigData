@@ -1,0 +1,49 @@
+[TOC]
+
+### 创建分区文件
+
+echo "1|
+2|
+3|
+4|
+5|
+6|
+7|
+8|
+9|
+10|" > /root/region_split_info.txt
+
+### 创建预分区表
+
+```
+create 'split_table_test', 'cf', {SPLITS_FILE => '/home/data/hbase/region_split_info.txt'}
+
+put 'split_table_test' ,'1rowkey1','cf:name','jiaolong'
+put 'split_table_test' ,'2rowkey1','cf:age','31'
+put 'split_table_test' ,'3rowkey1','cf:sex','man'
+
+get 'split_table_test' ,'rowkey1'
+```
+
+### 查询预分区信息
+
+- locate_region 'split_table_test', '0001rowkey1'
+
+- scan 'hbase:meta'
+
+### 注意内容
+
+```
+注意rowKey与分区的关系。例如：
+	rowkey为：1/2019、10/2019，
+	分区为：echo "1| 10|" > /root/region_split_info.txt
+	那么在向hbase添加数据的时候，这两条数据会同时会同时写入到10的分区中.
+```
+
+
+
+### 参考文章
+
+1.[hbase预分区参考](https://blog.csdn.net/chaolovejia/article/details/46375849)
+
+2.[hbase预分区参考](https://www.cnblogs.com/quchunhui/p/7543385.html)
